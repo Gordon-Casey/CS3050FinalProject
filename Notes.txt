@@ -1,0 +1,3 @@
+fscan file in and use strlen() to get the length of each string row and depth of each column
+malloc the double char pointer
+rewind file and copy characters
