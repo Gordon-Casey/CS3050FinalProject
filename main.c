@@ -85,13 +85,14 @@ int main(int argc, char** argv) {           //room.txt output.txt
     while(k < rowCounter){
         j = 0;
         while(j< maxLine){
-            printf(" %d", numArray[k][j]);
-            
+           // printf(" %d", numArray[k][j]);
+            numArray[k][j] = 0;
             j++;
         }
         printf("\n");
         k++;
     }
+    
     
     int row = 0;
     int column = 0;
@@ -121,6 +122,8 @@ int main(int argc, char** argv) {           //room.txt output.txt
             }
             else if(c == ' ' && flag == 1){
                 numArray[j][k] = 1;
+                head = newNode(head, j, k, c, counter);     //add nodes here
+                counter++;
             }
             k++;
         }
@@ -139,11 +142,37 @@ int main(int argc, char** argv) {           //room.txt output.txt
         j++;
     }
     
+    printf("\n"); 
+    while(head != NULL){
+        printf("%d %d\n", head->row, head->column);
+        head = head->nextPtr;
+    }
+    
+    node* temp4 = head;
+    while(temp4->nextPtr != NULL)
+        temp4 = temp4->nextPtr;
+    
+    printf("\n%d", temp4->nodeNum);
+    
+    int **matrixArray = malloc(sizeof(int*) * temp4->nodeNum);
+    k = 0;
+    while(k < temp4->nodeNum){
+        *(matrixArray + k) = malloc(sizeof(int) * temp4->nodeNum);
+        k++;
+    }
 
+   /* printf("\n");
+    j = 0;
+    while(j < rowCounter){
+        k = 0;
+        while(k< maxLine){
+            printf(" %d", matrixArray[k][j]);
+            k++;
+        }
+        printf("\n");
+        j++;
+    }*/
     
-    
-    int matrixArray[counter][counter];
-    memset(matrixArray, 0, sizeof(matrixArray));            //initializes array to 0
     int tempRow = 0;
     int tempColumn = 0;
     int count;
