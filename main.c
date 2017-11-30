@@ -19,17 +19,24 @@ typedef struct Node{
 node* newNode(node* head, int num1, int num2, char symbol, int value);
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) {           //room.txt output.txt
 
     char* inputfile = (char*)malloc(sizeof(char)*strlen(argv[1]));     
-    strcpy(inputfile, argv[1]);                                            
+    strcpy(inputfile, argv[1]); 
+    
+    char* outputfile = (char*)malloc(sizeof(char)*strlen(argv[2]));
+    strcpy(outputfile, argv[2]);
     
     FILE* aptr;
+    FILE* bptr;
     
     if((aptr = fopen(inputfile, "r")) == NULL){
         exit(1);
     }
     
+    if((bptr = fopen(outputfile, "w")) == NULL){
+        exit(2);
+    }
     rewind(aptr);
     
     char* inputLine;
@@ -51,48 +58,89 @@ int main(int argc, char** argv) {
         
     }
     
+    printf("\n%d %d", maxLine, rowCounter);
+    
     rewind(aptr);
     
-    char roomArray[rowCounter][maxLine];
-    int numArray[rowCounter][maxLine];
-    memset(numArray, -1, sizeof(numArray));         //initializes array to -1
+    char **roomArray = malloc(sizeof(char*) * maxLine);
+    int k = 0;
+    while(k < maxLine){
+        *(roomArray + k) = malloc(sizeof(char) * rowCounter);
+        k++;
+    }
+    
+    int **numArray = malloc(sizeof(int*) * maxLine);
+    k = 0;
+    while(k < maxLine){
+        *(numArray + k) = malloc(sizeof(int) * rowCounter);
+        k++;
+    }
+    
+       
+    
+    
+    
+    k = 0;
+    int j = 0;
+    while(k < rowCounter){
+        j = 0;
+        while(j< maxLine){
+            printf(" %d", numArray[k][j]);
+            
+            j++;
+        }
+        printf("\n");
+        k++;
+    }
+    
     int row = 0;
     int column = 0;
     int cat = 0;
     int counter = 1;
     
     node* head = NULL;
-     
-    while(!feof(aptr)){                 //parses through all the characters
-        
-        char c;
+    char c;
+    j = 0, k = 0;
+    int flag = 0;
+    while(!feof(aptr)){                 //parses through all the characters and load the data into the roomArray
         c = fgetc(aptr);
         if(c == '\n'){
-            column = 0;
-            row++;
-            cat = 0;
+            roomArray[j][k] = c;
+            j++;
+            flag = 0;
+            k = 0;
         }
-        else if(c == ' ' && cat == 0){
-            column++;
-        }
-        else if(c == '#'){
-            numArray[row][column] = 0;
-            column++;
-            cat = 1;
-        }
-        else if(c == ' ' && cat == 1){
-            head = newNode(head, row, column, c, counter);      //adds to  linked list
-            numArray[row][column] = 1;                          //edits numArray to show its a reachable node
-            counter++;
-            column++;
-        }
-        else if(isupper(c)){
-            head = newNode(head, row, column, c, counter);      //adds to  linked list                  
-            numArray[row][column] = 1;                          //edits numArray to show its a reachable node
-            counter++;
-            column++;
+        else {
+            roomArray[j][k] = c;
+            if(c == '#'){
+                numArray[j][k] = 0;
+                flag = 1;
+            }
+            else if(c == ' ' && flag == 0){
+                numArray[j][k] = -3;
+            }
+            else if(c == ' ' && flag == 1){
+                numArray[j][k] = 1;
+            }
+            k++;
         }
     }
+    
+    printf("\n");
+    
+    j = 0;
+    while(j < rowCounter){
+        k = 0;
+        while(k< maxLine){
+            printf(" %d", numArray[j][k]);
+            k++;
+        }
+        printf("\n");
+        j++;
+    }
+    
+
+    
     
     int matrixArray[counter][counter];
     memset(matrixArray, 0, sizeof(matrixArray));            //initializes array to 0
@@ -130,7 +178,15 @@ int main(int argc, char** argv) {
         temp = temp->nextPtr;
     }
     
+    for(row = 0; row < (rowCounter); row++){
+        fprintf(bptr, "\n");
+        for(column = 0; column < (maxLine-1); column++){
+            fprintf(bptr,"%d", matrixArray[row][column]);
+        }
+    }
+    
     fclose(aptr);
+    fclose(bptr);
     
     return (0);
 }
