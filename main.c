@@ -17,162 +17,59 @@ typedef struct Node{
 }node;
 
 node* newNode(node* head, int num1, int num2, char symbol, int value);
+void printCharArray(char **x, int rowLength, int columnHeight); // Helper function.
+void printIntArray(int **x, int rowLength, int columnHeight); // Helper function.
+int getDimensions(int *maxLength, char *inputFile); // Gets depth and width of room.
+char **buildRoomCharArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
+int **buildRoomIntArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
+int checkFiles(char *inputFile, char *outputFile);
+void populateArraysAndMakeList(node *head, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile);
+int **buildAdjacencyMatrixArray(int lengthOfList);
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {           //room.txt output.txt
 
-    char* inputfile = (char*)malloc(sizeof(char)*strlen(argv[1]));     
-    strcpy(inputfile, argv[1]); 
-    
-    char* outputfile = (char*)malloc(sizeof(char)*strlen(argv[2]));
-    strcpy(outputfile, argv[2]);
-    
-    FILE* aptr;
-    FILE* bptr;
-    
-    if((aptr = fopen(inputfile, "r")) == NULL){
-        exit(1);
-    }
-    
-    if((bptr = fopen(outputfile, "w")) == NULL){
-        exit(2);
-    }
-    rewind(aptr);
-    
-    char* inputLine;
-    int maxLine = 0;
-    int readVal = 0;
-    int rowCounter = 0;
-    
-    while(!feof(aptr))
-    {
-        inputLine = (char*)malloc(sizeof(char)* 100);
-        fgets(inputLine, 100, aptr);
-        readVal = strlen(inputLine);
-        if(readVal > maxLine)
-            maxLine = readVal;
-        free(inputLine);
-        inputLine = NULL;
-        rowCounter++;             //this creates one column extra if the final line of the room.txt is empty
-                                    //is it safe to assume there will always be one blank line at the end or malloc the extra space?
-        
-    }
-    
-    printf("\n%d %d", maxLine, rowCounter);
-    
-    rewind(aptr);
-    
-    char **roomArray = malloc(sizeof(char*) * maxLine);
-    int k = 0;
-    while(k < maxLine){
-        *(roomArray + k) = malloc(sizeof(char) * rowCounter);
-        k++;
-    }
-    
-    int **numArray = malloc(sizeof(int*) * maxLine);
-    k = 0;
-    while(k < maxLine){
-        *(numArray + k) = malloc(sizeof(int) * rowCounter);
-        k++;
-    }
-    
-       
-    
-    
-    
-    k = 0;
-    int j = 0;
-    while(k < rowCounter){
-        j = 0;
-        while(j< maxLine){
-           // printf(" %d", numArray[k][j]);
-            numArray[k][j] = 0;
-            j++;
-        }
-        printf("\n");
-        k++;
-    }
-    
-    
-    int row = 0;
-    int column = 0;
-    int cat = 0;
-    int counter = 1;
-    
-    node* head = NULL;
-    char c;
-    j = 0, k = 0;
-    int flag = 0;
-    while(!feof(aptr)){                 //parses through all the characters and load the data into the roomArray
-        c = fgetc(aptr);
-        if(c == '\n'){
-            roomArray[j][k] = c;
-            j++;
-            flag = 0;
-            k = 0;
-        }
-        else {
-            roomArray[j][k] = c;
-            if(c == '#'){
-                numArray[j][k] = 0;
-                flag = 1;
-            }
-            else if(c == ' ' && flag == 0){
-                numArray[j][k] = -3;
-            }
-            else if(c == ' ' && flag == 1){
-                numArray[j][k] = 1;
-                head = newNode(head, j, k, c, counter);     //add nodes here
-                counter++;
-            }
-            k++;
-        }
-    }
-    
-    printf("\n");
-    
-    j = 0;
-    while(j < rowCounter){
-        k = 0;
-        while(k< maxLine){
-            printf(" %d", numArray[j][k]);
-            k++;
-        }
-        printf("\n");
-        j++;
-    }
-    
-    printf("\n"); 
-    while(head != NULL){
-        printf("%d %d\n", head->row, head->column);
-        head = head->nextPtr;
-    }
-    
-    node* temp4 = head;
-    while(temp4->nextPtr != NULL)
-        temp4 = temp4->nextPtr;
-    
-    printf("\n%d", temp4->nodeNum);
-    
-    int **matrixArray = malloc(sizeof(int*) * temp4->nodeNum);
-    k = 0;
-    while(k < temp4->nodeNum){
-        *(matrixArray + k) = malloc(sizeof(int) * temp4->nodeNum);
-        k++;
-    }
+    int y = checkFiles(argv[1], argv[2]);
+    if(y == 1) exit(-1); //input file failed
+    if(y == 2) exit(-2); //output file failed
+    char *inputFile = argv[1];
+    char *outputFile = argv[2];
 
-   /* printf("\n");
-    j = 0;
-    while(j < rowCounter){
-        k = 0;
-        while(k< maxLine){
-            printf(" %d", matrixArray[k][j]);
-            k++;
-        }
-        printf("\n");
-        j++;
-    }*/
+    int *maxLineLength = malloc(sizeof(int));       //why does this need to be a pointer?
+    int rowHeight = getDimensions(maxLineLength, argv[1]);
+
+    printf("Row height = %d, maxLineLength = %d.\n", rowHeight, *maxLineLength);     
     
+    char **roomCharArray = buildRoomCharArray(*maxLineLength, rowHeight);
+    int **roomIntArray = buildRoomIntArray(*maxLineLength, rowHeight);
+
+    int mm, vv; // This block is helper code. It initializes the char array to 'q' and int array to '5';
+    for(mm = 0; mm < rowHeight; mm++){
+        for(vv = 0; vv < *maxLineLength; vv++){
+            roomIntArray[mm][vv] = 5;
+            roomCharArray[mm][vv] = 'q'; } }
+
+    node *head = NULL;
+
+    printIntArray(roomIntArray, *maxLineLength, rowHeight);
+    printCharArray(roomCharArray, *maxLineLength, rowHeight);
+    
+    populateArraysAndMakeList(head, roomCharArray, roomIntArray, *maxLineLength, rowHeight, inputFile);
+
+//    int lengthOfList;
+//    int **adjacencyMatrix = buildAdjacencyMatrix(lengthOfList);
+
+    printIntArray(roomIntArray, *maxLineLength, rowHeight);
+    printCharArray(roomCharArray, *maxLineLength, rowHeight);
+    
+  
+    
+
+    /*
+    int matrixArray[counter][counter];
+    memset(matrixArray, 0, sizeof(matrixArray));            //initializes array to 0
     int tempRow = 0;
     int tempColumn = 0;
     int count;
@@ -206,20 +103,18 @@ int main(int argc, char** argv) {           //room.txt output.txt
         }
         temp = temp->nextPtr;
     }
-    
-    for(row = 0; row < (rowCounter); row++){
+*/    
+/*    for(row = 0; row < (rowCounter); row++){
         fprintf(bptr, "\n");
-        for(column = 0; column < (maxLine-1); column++){
+        for(column = 0; column < (maxLineLength-1); column++){
             fprintf(bptr,"%d", matrixArray[row][column]);
         }
-    }
+    }*/
     
-    fclose(aptr);
-    fclose(bptr);
     
     return (0);
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 node* newNode(node* head, int num1, int num2, char symbol, int value){ 
     
     node* temp = head;
@@ -247,4 +142,120 @@ node* newNode(node* head, int num1, int num2, char symbol, int value){
         temp->nextPtr = aNode;
     }
     return(head);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void printCharArray(char **x, int rowLength, int columnHeight) {
+    int j ,k;
+    printf("\n\n *** Char Array ***\n");
+    for(j = 0; j < columnHeight; j++){
+        for(k = 0; k < rowLength; k++){
+            printf("%c ", x[j][k]);
+        }
+        printf("\n");
+    }
+    printf("*** End Char Array *** \n\n");
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void printIntArray(int **x, int rowLength, int columnHeight) {
+    int j ,k;
+    printf("\n\n *** Int Array ***\n");
+    for(j = 0; j < columnHeight; j++){
+        for(k = 0; k < rowLength; k++){
+            printf("%d ", x[j][k]);
+        }
+        printf("\n");
+    }
+    printf("*** End Int Array *** \n\n");
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int getDimensions(int *maxLength, char *inputFile){
+    FILE *fptr = fopen(inputFile, "r"); // need do some error checking here
+    if(fptr == NULL)
+        exit(1);
+    *maxLength = 0;
+    int height = 0;
+    char *buffer = (char*)malloc(sizeof(char)* 1000);
+
+    int readVal = 0;
+    while(!feof(fptr)) {
+        fgets(buffer, 1000, fptr);
+        readVal = strlen(buffer);
+        if(readVal > *maxLength)
+            *maxLength = readVal;
+        height++; 
+    }
+    *maxLength -= 1;
+    free(buffer);
+    return (height);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+char **buildRoomCharArray(int maxLineLength, int rowHeight){
+    char **x = (char**)malloc(sizeof(char*) * maxLineLength);
+    int k;
+    for(k = 0; k < maxLineLength; k++){
+        *(x + k) = malloc(sizeof(char) * rowHeight);
+    }
+    return x;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int **buildRoomIntArray(int maxLineLength, int rowHeight){
+    int **x = (int**)malloc(sizeof(int*) * maxLineLength);
+    int k;
+    for(k = 0; k < maxLineLength; k++){
+        x[k] = (int*)malloc(sizeof(int) * (rowHeight + 200));
+    }
+    return x;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int checkFiles(char *inputFile, char *outputFile){
+    
+    FILE* aptr = fopen(inputFile, "r");
+    if(aptr == NULL) return 1;
+
+    FILE* bptr = fopen(outputFile, "w");
+    if(bptr == NULL) return 2;
+    
+    fclose(aptr);
+    
+    fclose(bptr);
+
+    return 0;
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void populateArraysAndMakeList(node *head, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile){
+    
+    node *localHead = NULL; // Push a node onto the list every time there is a hit
+    int k = 0, j = 0;
+    
+    FILE *fptr = fopen(inputFile, "r");
+    if(fptr == NULL)
+        exit(1);
+    rewind(fptr);
+    char c;
+    //int flag = 0;
+
+    while(!feof(fptr)){                 //parses through all the characters and load the data into the roomArray
+        c = fgetc(fptr);
+        if(c == '\n') {
+            k = 0;
+            j++;
+        }
+        else {
+            
+
+            if(c == ' '){
+                roomIntArray[j][k] = 1;
+                roomCharArray[j][k] = c;
+            }
+
+            else if(c == '#'){
+                roomIntArray[j][k] = 8;
+                roomCharArray[j][k] = c;
+            }
+            k++;
+        }
+    }
+
+    fclose(fptr);
 }
