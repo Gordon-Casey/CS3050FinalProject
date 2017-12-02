@@ -26,7 +26,7 @@ int checkFiles(char *inputFile, char *outputFile);
 int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
 int **buildAdjacencyMatrixArray(int lengthOfList);
 void printList(node *head);
-int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharA
+int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {           //room.txt output.txt
     //printf("\n******Int Array after function ***\n");
     //printIntArray(roomIntArray, *maxLineLength, rowHeight);
     //printCharArray(roomCharArray, *maxLineLength, rowHeight);
-    //printList(head);
+    printList(head);
 
 
 
@@ -296,4 +296,16 @@ void printList(node *head){
         printf("Node key = %d. Position = %d,%d. Character = %c.\n", temp->nodeNum, temp->row, temp->column, temp->symbol);
     }
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray){
+    node *temp = head;
+    int **tempAdjacencyMatrix = adjacencyMatrix;
 
+    
+
+
+
+
+
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
