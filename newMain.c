@@ -10,6 +10,8 @@ typedef struct Node{
     
     int row;
     int column;
+    int finished;
+    int distance;
     char symbol;            //symbol is used to mark start & stop points
     int nodeNum;
     struct Node* nextPtr;
@@ -26,7 +28,9 @@ int checkFiles(char *inputFile, char *outputFile);
 int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
 int **buildAdjacencyMatrixArray(int lengthOfList);
 void printList(node *head);
-int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray);
+int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray, int lengthOfList, int maxLineLength, int rowHeight);
+int searchList(node *head, int x, int y);
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -53,65 +57,28 @@ int main(int argc, char** argv) {           //room.txt output.txt
     free(ptrLengthOfList);
     head = *sendHead;
     int u, v;
-    for(u = 0; u < lengthOfList; u++){
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+    /*for(u = 0; u < lengthOfList; u++){
         for(v = 0; v < lengthOfList; v++){
             printf("%d ", adjacencyMatrix[u][v]);
         }
         printf("\n");
-    }
+    }*/
 
     //printf("\n******Int Array after function ***\n");
-    //printIntArray(roomIntArray, *maxLineLength, rowHeight);
-    //printCharArray(roomCharArray, *maxLineLength, rowHeight);
+    printIntArray(roomIntArray, *maxLineLength, rowHeight);
+    printCharArray(roomCharArray, *maxLineLength, rowHeight);
+    printList(head);
+    node *temp = head;
+    while(temp->symbol != 'S') temp = temp->nextPtr;
+    node *root = temp;
+    temp = head;
+    while(temp->symbol != 'E') temp = temp->nextPtr;
+    dijkstra(head, root, temp, lengthOfList, adjacencyMatrix);    
     printList(head);
 
 
 
-
-
-    /*
-    int matrixArray[counter][counter];
-    memset(matrixArray, 0, sizeof(matrixArray));            //initializes array to 0
-    int tempRow = 0;
-    int tempColumn = 0;
-    int count;
-    int count2;
-    node* temp = head;
-    node* temp2;
- 
-    while(temp != NULL){                //creates adj matrix
-        
-        tempRow = (head->row + 1);
-        tempColumn = (head->column - 1);
-        
-        for(count = 0; count < 3; count++){             //2 for loops look at all nodes adj to the node we're looking at
-            for(count2 = 0; count2 < 3; count2++){
-                
-                temp2 = head;
-                if(numArray[tempRow][tempColumn] == 1){     //checks if adj node is reachable
-                    
-                    while(temp2 != NULL){               //cycles through adj list to find node that corresponds to x,y coordinates
-                        if(temp2->column == tempColumn && temp2->row == tempRow){       
-                            matrixArray[temp->nodeNum][temp2->nodeNum] = 1;
-                            matrixArray[temp2->nodeNum][temp->nodeNum] = 1;
-                            break;
-                        }
-                        temp2 = temp2->nextPtr;
-                    }
-                }
-                tempColumn++;
-            }
-            tempRow--;
-        }
-        temp = temp->nextPtr;
-    }
-*/    
-/*    for(row = 0; row < (rowCounter); row++){
-        fprintf(bptr, "\n");
-        for(column = 0; column < (maxLineLength-1); column++){
-            fprintf(bptr,"%d", matrixArray[row][column]);
-        }
-    }*/
     
     
     return (0);
@@ -124,6 +91,8 @@ node* newNode(node* head, int num1, int num2, char symbol){
         node* aNode = (node*)malloc(sizeof(node));
         aNode->row = num1;
         aNode->column = num2;
+        aNode->finished = 0;
+        aNode->distance = -1;
         aNode->symbol = symbol;
         aNode->nodeNum = counter;
         aNode->nextPtr = NULL;
@@ -138,6 +107,8 @@ node* newNode(node* head, int num1, int num2, char symbol){
         node* aNode = (node*)malloc(sizeof(node));
         aNode->row = num1;
         aNode->column = num2;
+        aNode->finished = 0;
+        aNode->distance = -1;
         aNode->symbol = symbol;
         aNode->nodeNum = counter;
         aNode->nextPtr = NULL;
@@ -163,6 +134,7 @@ void printCharArray(char **x, int rowLength, int columnHeight) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void printIntArray(int **x, int rowLength, int columnHeight) {
     int j ,k;
+    printf("*** Int Array ***\n");
     //printf("\n\n *** Int Array ***\n");
     for(j = 0; j < columnHeight; j++){
         for(k = 0; k < rowLength; k++){
@@ -196,8 +168,12 @@ char **buildRoomCharArray(int maxLineLength, int rowHeight){
     char **x = malloc(sizeof(char*) * maxLineLength);
     int k;
     for(k = 0; k < maxLineLength; k++){
-        *(x + k) = malloc(sizeof(char) * rowHeight);
+        *(x + k) = malloc(sizeof(char) * (rowHeight * 10000));
     }
+    int mm, vv; // This block is helper code. It initializes the char array to 'q' and int array to '5';
+        for(mm = 0; mm < rowHeight; mm++){
+            for(vv = 0; vv < maxLineLength; vv++){
+                x[mm][vv] = ' '; } }
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -205,14 +181,13 @@ int **buildRoomIntArray(int maxLineLength, int rowHeight){
     int **x = malloc(sizeof(int*) * maxLineLength);
     int k;
     for(k = 0; k < maxLineLength; k++){
-        *(x + k) = malloc(sizeof(int) * (rowHeight * 100));
+        *(x + k) = malloc(sizeof(int) * (rowHeight * 10000));
     }
 
     int mm, vv; // This block is helper code. It initializes the char array to 'q' and int array to '5';
     for(mm = 0; mm < rowHeight; mm++){
         for(vv = 0; vv < maxLineLength; vv++){
-            x[mm][vv] = 5;
-            x[mm][vv] = 'q'; } }
+            x[mm][vv] = 9;} }
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +209,7 @@ int checkFiles(char *inputFile, char *outputFile){
 int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList){
     node *localHead = NULL; // Push a node onto the list every time there is a hit
     int k = 0, j = 0;
-    
+    int flag = 0;
     FILE *fptr = fopen(inputFile, "r");
 
     char c;
@@ -242,22 +217,49 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
     while(!feof(fptr)){  //parses through all the characters and load the data into the roomArray
         c = fgetc(fptr);
         if(feof(fptr)) break; // Added bc of Brandon
-        //printf("%c\n", c); // just a helper print to print each character, I only use it in GDB
         if(c == '\n') {
             k = 0;
             ++j;
+            flag = 0;
         }
         else {
             roomCharArray[j][k] = c;
-
-            if(c == ' '){ // If the char is a space, make the int array position a 1
+            if(c == '#'){
+                roomIntArray[j][k] = 0;
+                k++;
+                flag = 1;
+            }
+            else if(c == ' ' && flag == 1){ // If the char is a space, make the int array position a 1
                 roomIntArray[j][k] = 1;
                 localHead = newNode(localHead, j, k, c);
                 k++;
             }
-
-            else if(c == '#'){ // If the char is a #, make the int array position an 8
+            else if(c == ' ' && flag == 0){
                 roomIntArray[j][k] = 0;
+                k++;
+            }
+            else if(c == 'S'){ 
+                roomIntArray[j][k] = 2;
+                localHead = newNode(localHead, j, k, c);
+                k++;
+            }
+            else if(c == 'E'){
+                roomIntArray[j][k] = 3;
+                localHead = newNode(localHead, j, k, c);
+                k++;
+            }
+            else if(c == 'F'){
+                roomIntArray[j][k] = 4;
+                localHead = newNode(localHead, j, k, c);
+                k++;
+            }
+            else if(c == 'L'){
+                roomIntArray[j][k] = 5;
+                localHead = newNode(localHead, j, k, c);
+                k++;
+            }
+            else {
+                roomIntArray[j][k] = 9;
                 k++;
             }
         } 
@@ -290,22 +292,119 @@ int **buildAdjacencyMatrixArray(int lengthOfList) {
 void printList(node *head){
     node *temp = head;
 
-    printf("Node key = %d. Position = %d,%d. Character = %c.\n", temp->nodeNum, temp->row, temp->column, temp->symbol);
+    printf("Node key = %d. Position = %d,%d. Character = %c. Distance = %d.\n", temp->nodeNum, temp->row, temp->column, temp->symbol, temp->distance);
     while(temp->nextPtr != NULL){
         temp = temp->nextPtr;
-        printf("Node key = %d. Position = %d,%d. Character = %c.\n", temp->nodeNum, temp->row, temp->column, temp->symbol);
+        printf("Node key = %d. Position = %d,%d. Character = %c. Distance = %d.\n", temp->nodeNum, temp->row, temp->column, temp->symbol, temp->distance);
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray){
+int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray, int lengthOfList, int maxLineLength, int rowHeight){
     node *temp = head;
     int **tempAdjacencyMatrix = adjacencyMatrix;
-
-    
-
-
-
-
-
+    int workingX = 0;
+    int workingY = 0;
+    int searchResult = 0;
+    int u, v;
+    while(temp->nextPtr != NULL) {
+        workingX = temp->row - 1;
+        workingY = temp->column - 1;
+        
+        for(u = 0; u < 3; u++){
+            for(v = 0; v < 3; v++){
+                if(roomIntArray[workingX][workingY] != 0 && roomIntArray[workingX][workingY] != 9){
+                    searchResult = searchList(head, workingX, workingY);
+                    tempAdjacencyMatrix[temp->nodeNum - 1][searchResult - 1] = 1;
+                    tempAdjacencyMatrix[searchResult - 1][temp->nodeNum - 1] = 1;
+                }
+                workingY++;
+            }
+            workingX++;
+            workingY = temp->column - 1;
+        }
+        temp = temp->nextPtr;
+    }
+    workingX = temp->row - 1;
+    workingY = temp->column - 1; 
+    for(u = 0; u < 3; u++){
+        for(v = 0; v < 3; v++){
+            if(roomIntArray[workingX][workingY] != 0 && roomIntArray[workingX][workingY] != 9){
+                searchResult = searchList(head, workingX, workingY);
+                tempAdjacencyMatrix[temp->nodeNum - 1][searchResult - 1] = 1;
+                tempAdjacencyMatrix[searchResult - 1][temp->nodeNum - 1] = 1;
+            }
+            workingY++;
+        }
+        workingX++;
+        workingY = temp->column - 1;
+    }
+return tempAdjacencyMatrix;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int searchList(node *head, int x, int y) {
+    node *temp = head;
+
+    if(temp->row == x && temp->column == y) return temp->nodeNum;
+
+    while(temp->nextPtr != NULL){
+        temp = temp->nextPtr;
+        if(temp->row == x && temp->column == y) return temp->nodeNum;
+    }
+    return -1;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
+    adjacencyMatrix[root->row][root->column] = 0;
+    root->distance = 0;
+    
+
+    node *temp = head;
+    node *tempPrime = NULL;
+    int ctrA = 0, ctrB = 0, distance = 0;
+    while(ctrA < lengthOfList){
+        distance = 100000;
+        temp = head;
+        ctrB = 0;
+        tempPrime = NULL;
+        while(ctrB < lengthOfList){
+            if(temp->finished == 0 && temp->distance != -1 && temp->distance < distance){
+                distance = temp->distance;
+                tempPrime = temp;
+            }
+            ctrB++;
+        temp = temp->nextPtr;
+        }
+
+        if(tempPrime == NULL) {
+        int u, v;
+        for(u = 0; u < lengthOfList; u++){
+            for(v = 0; v < lengthOfList; v++){
+                printf("%d ", adjacencyMatrix[u][v]);
+            }
+            printf("\n");
+            }
+
+        return; // no more verts in the list
+        }
+        tempPrime->finished = 1;
+        temp = head;
+        ctrB = 0;
+        while(ctrB < lengthOfList){
+            if(temp->distance == -1){
+                if(adjacencyMatrix[tempPrime->nodeNum - 1][temp->nodeNum - 1] != 0) {
+                temp->distance = tempPrime->distance + 1;
+                }
+            }
+            else {
+                if(temp->finished != 1 && adjacencyMatrix[tempPrime->nodeNum - 1][temp->nodeNum - 1] != 0 && (tempPrime->distance + 1) < temp->distance) {
+                    temp->distance = tempPrime->distance + 1;
+                }
+            }
+            ctrB++;
+            temp = temp->nextPtr;
+        }
+        ctrA++;
+    }
+}
+
+
