@@ -67,8 +67,8 @@ int main(int argc, char** argv) {           //room.txt output.txt
     node* listOne = NULL;
     node* listTwo = NULL;
     //printf("\n******Int Array after function ***\n");
-    //printIntArray(roomIntArray, *maxLineLength, rowHeight);
-    //printCharArray(roomCharArray, *maxLineLength, rowHeight);
+    printIntArray(roomIntArray, *maxLineLength, rowHeight);
+    printCharArray(roomCharArray, *maxLineLength, rowHeight);
     //printList(head);
     node *temp = head;
     while(temp->symbol != 'S') temp = temp->nextPtr;
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {           //room.txt output.txt
         printf("%d %d\n", listOne->row, listOne->column);
         listOne = listOne->nextPtr;
     }
-    
+    /* 
     int count;
     for(count = 0; count < lengthOfList; count++){
         adjacencyMatrix[count][temp->nodeNum-1] = 0;
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {           //room.txt output.txt
     while(listTwo != NULL){
         printf("%d %d\n", listTwo->row, listTwo->column);
         listTwo = listTwo->nextPtr;
-    }
+    }*/
    
     //printList(head);
   /*  int w = 0;
@@ -201,29 +201,29 @@ int getDimensions(int *maxLength, char *inputFile){
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 char **buildRoomCharArray(int maxLineLength, int rowHeight){
-    char **x = malloc(sizeof(char*) * maxLineLength);
+    char **x = malloc(sizeof(char*) * rowHeight);
     int k;
     for(k = 0; k < maxLineLength; k++){
-        *(x + k) = malloc(sizeof(char) * (rowHeight * 10000));
+        *(x + k) = malloc(sizeof(char) * maxLineLength);
     }
     int mm, vv; // This block is helper code. It initializes the char array to 'q' and int array to '5';
-        for(mm = 0; mm < rowHeight; mm++){
-            for(vv = 0; vv < maxLineLength; vv++){
-                x[mm][vv] = ' '; } }
+        for(mm = 0; mm < maxLineLength; mm++){
+            for(vv = 0; vv < rowHeight; vv++){
+                x[vv][mm] = ' '; } }
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int **buildRoomIntArray(int maxLineLength, int rowHeight){
-    int **x = malloc(sizeof(int*) * maxLineLength);
+    int **x = malloc(sizeof(int*) * rowHeight);
     int k;
     for(k = 0; k < maxLineLength; k++){
-        *(x + k) = malloc(sizeof(int) * (rowHeight * 10000));
+        *(x + k) = malloc(sizeof(int) * maxLineLength);
     }
 
     int mm, vv; // This block is helper code. It initializes the char array to 'q' and int array to '5';
-    for(mm = 0; mm < rowHeight; mm++){
-        for(vv = 0; vv < maxLineLength; vv++){
-            x[mm][vv] = 9;} }
+    for(mm = 0; mm < maxLineLength; mm++){
+        for(vv = 0; vv < rowHeight; vv++){
+            x[vv][mm] = 9;} }
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
