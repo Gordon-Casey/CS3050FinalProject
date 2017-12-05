@@ -64,7 +64,8 @@ int main(int argc, char** argv) {           //room.txt output.txt
         }
         printf("\n");
     }*/
-    node* fuckList = NULL;
+    node* listOne = NULL;
+    node* listTwo = NULL;
     //printf("\n******Int Array after function ***\n");
     //printIntArray(roomIntArray, *maxLineLength, rowHeight);
     //printCharArray(roomCharArray, *maxLineLength, rowHeight);
@@ -74,24 +75,44 @@ int main(int argc, char** argv) {           //room.txt output.txt
     node *root = temp;
     temp = head;
     while(temp->symbol != 'E') temp = temp->nextPtr;
-    fuckList = dijkstra(head, root, temp, lengthOfList, adjacencyMatrix); 
-   
-    while(fuckList != NULL){
-        printf("%d %d\n", fuckList->row, fuckList->column);
-        fuckList = fuckList->nextPtr;
+    
+    listOne = dijkstra(head, root, temp, lengthOfList, adjacencyMatrix); 
+    while(listOne != NULL){
+        printf("%d %d\n", listOne->row, listOne->column);
+        listOne = listOne->nextPtr;
     }
     
-    /*printList(head);
-    int w = 0;
+  /*  int count;
+    for(count = 0; count < lengthOfList; count++){
+        adjacencyMatrix[count][temp->nodeNum-1] = 0;
+        adjacencyMatrix[temp->nodeNum-1][count] = 0;
+    }
+    */
+    printf("\n\n");
+   /*
+    temp = head;
+    while(temp->symbol != 'F') temp = temp->nextPtr;
+    root = temp;
+    temp = head;
+    while(temp->symbol != 'L') temp = temp->nextPtr;
+    
+    listTwo = dijkstra(head, root, temp, lengthOfList, adjacencyMatrix);
+    while(listTwo != NULL){
+        printf("%d %d\n", listTwo->row, listTwo->column);
+        listTwo = listTwo->nextPtr;
+    }
+   */
+    //printList(head);
+  /*  int w = 0;
     int p = 0;
     for(p = 0; p < lengthOfList; p++){
         for(w = 0; w < lengthOfList; w++){
             printf("%d ", adjacencyMatrix[p][w]);
         }
         printf("\n");
-    }*/
+    }
 
-
+*/
     
     
     return (0);
