@@ -159,7 +159,7 @@ node* newNode(node* head, int num1, int num2, char symbol){
 void printCharArray(char **x, int rowLength, int columnHeight) {
     int j ,k;
     printf("\n\n *** Char Array of the Graph***\n");
-    for(j = 0; j < columnHeight + 1; j++){
+    for(j = 0; j < columnHeight; j++){
         for(k = 0; k < rowLength; k++){
             printf("%c ", x[j][k]);
         }
@@ -172,7 +172,7 @@ void printIntArray(int **x, int rowLength, int columnHeight) {
     int j ,k;
     printf("*** Int Array ***\n");
     //printf("\n\n *** Int Array ***\n");
-    for(j = 0; j < columnHeight + 1; j++){
+    for(j = 0; j < columnHeight; j++){
         for(k = 0; k < rowLength; k++){
             printf("%d ", x[j][k]);
         }
