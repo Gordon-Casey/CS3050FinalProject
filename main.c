@@ -30,8 +30,8 @@ int **buildAdjacencyMatrixArray(int lengthOfList);
 void printList(node *head);
 int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray, int lengthOfList, int maxLineLength, int rowHeight);
 int searchList(node *head, int x, int y);
-node* dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
-
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
+node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char** argv) {           //room.txt output.txt
@@ -76,32 +76,34 @@ int main(int argc, char** argv) {           //room.txt output.txt
     temp = head;
     while(temp->symbol != 'E') temp = temp->nextPtr;
     
-    listOne = dijkstra(head, root, temp, lengthOfList, adjacencyMatrix); 
+    dijkstra(head, root, temp, lengthOfList, adjacencyMatrix); 
+    
+    listOne = navigateList(head, root, temp, lengthOfList, adjacencyMatrix);
     while(listOne != NULL){
         printf("%d %d\n", listOne->row, listOne->column);
         listOne = listOne->nextPtr;
     }
     
-  /*  int count;
+    int count;
     for(count = 0; count < lengthOfList; count++){
         adjacencyMatrix[count][temp->nodeNum-1] = 0;
         adjacencyMatrix[temp->nodeNum-1][count] = 0;
     }
-    */
+    
     printf("\n\n");
-   /*
+   
     temp = head;
     while(temp->symbol != 'F') temp = temp->nextPtr;
     root = temp;
     temp = head;
     while(temp->symbol != 'L') temp = temp->nextPtr;
     
-    listTwo = dijkstra(head, root, temp, lengthOfList, adjacencyMatrix);
+    listTwo = navigateList(head, root, temp, lengthOfList, adjacencyMatrix);
     while(listTwo != NULL){
         printf("%d %d\n", listTwo->row, listTwo->column);
         listTwo = listTwo->nextPtr;
     }
-   */
+   
     //printList(head);
   /*  int w = 0;
     int p = 0;
@@ -387,7 +389,7 @@ int searchList(node *head, int x, int y) {
     return -1;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-node* dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
     adjacencyMatrix[root->row][root->column] = 0;
     root->distance = 0;
     
@@ -416,7 +418,7 @@ node* dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **a
         }
 
         if(tempPrime == NULL) {
-            return(NULL);
+            break;
             
              // no more verts in the list
         }
@@ -441,6 +443,17 @@ node* dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **a
         }
         ctrA++;
     }
+    
+}
+
+node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
+    
+    node* listTemp = NULL;
+    node* listTemp2 = NULL;
+    node* list = NULL;
+    int count;
+    int min = 10000;
+    node* holder = NULL;
     
     listTemp = head;
     listTemp2 = head;
