@@ -24,7 +24,7 @@ void printIntArray(int **x, int rowLength, int columnHeight); // Helper function
 int getDimensions(int *maxLength, char *inputFile); // Gets depth and width of room.
 char **buildRoomCharArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
 int **buildRoomIntArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
-int checkFiles(char *inputFile, char *outputFile);
+int checkFiles(char *inputFile);
 int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
 int **buildAdjacencyMatrixArray(int lengthOfList);
 void printList(node *head);
@@ -41,12 +41,15 @@ node *freeList(node *x);
 
 int main(int argc, char** argv) {           //   ./a.out room.txt
 
-    int y = checkFiles(argv[1], argv[2]);
-    if(y == 1) exit(-1); //input file failed
-    //if(y == 2) exit(-2); //output file failed
+    int y = checkFiles(argv[1]);
+    if(y == 1){
+        printf("\nInput file couldn't be opened");
+        exit(-1); //input file failed
+    } 
+    
+    
     char *inputFile = argv[1];
-    //char *outputFile = argv[2];
-
+    
     int *maxLineLength = malloc(sizeof(int));
     int rowHeight = getDimensions(maxLineLength, argv[1]);    
     
@@ -96,16 +99,13 @@ int main(int argc, char** argv) {           //   ./a.out room.txt
     list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
     resetList(head);
     blackout(adjacencyMatrix, sNodeNum, lengthOfList);
-
     dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     resetList(head);
-
     adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
     dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     resetList(head);
-
     node *temp = list2;
     while(temp != NULL){
         printf("%d %d\n", temp->row, temp->column);
@@ -115,11 +115,24 @@ int main(int argc, char** argv) {           //   ./a.out room.txt
     dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
     list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
     resetList(head);
-
+    
+    node* temp4 = list1;
+    
+    while(temp4 != NULL){
+        printf("%d %d\n", temp4->row, temp4->column);
+        temp4 = temp4->nextPtr;
+    }
+    printf("\n");
     dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     resetList(head);
-
+    temp4 = list2;
+    
+    while(temp4 != NULL){
+        printf("%d %d\n", temp4->row, temp4->column);
+        temp4 = temp4->nextPtr;
+    }
+    
     if(list1 == NULL){  
         printf("\nThere is not a path from S to E, regardless of where the second robot is. Exiting program...\n");
         exit(-5);
@@ -317,6 +330,10 @@ void printIntArray(int **x, int rowLength, int columnHeight) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int getDimensions(int *maxLength, char *inputFile){
     FILE *fptr = fopen(inputFile, "r"); // need do some error checking here
+    if(fptr == NULL){
+        printf("\nInput file couldn't be opened");
+        exit(87);
+    }
     *maxLength = 0;
     int height = 0;
     char *buffer = (char*)malloc(sizeof(char)* 1000);
@@ -331,6 +348,10 @@ int getDimensions(int *maxLength, char *inputFile){
     }
     *maxLength -= 1;
     free(buffer);
+    if(fclose(fptr) == EOF){     //failed to close
+        printf("\nFile failed to close");
+        exit(34);
+    }
     return (height - 1);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -361,18 +382,20 @@ int **buildRoomIntArray(int maxLineLength, int rowHeight){
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int checkFiles(char *inputFile, char *outputFile){
+int checkFiles(char *inputFile){
     
     FILE* aptr = fopen(inputFile, "r");
     if(aptr == NULL) return 1;
-
-    FILE* bptr = fopen(outputFile, "w");
-    if(bptr == NULL) return 2;
     
-    fclose(aptr);
+    rewind(aptr);
+    fseek(aptr, 0, SEEK_END);                       //check if file empty go to end see if the position changed
+    if(ftell(aptr) == 0)
+        return(1);
     
-    fclose(bptr);
-
+    if(fclose(aptr) == EOF){   //failed to close
+        printf("\nFile failed to close");
+        exit(34);
+    }
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -381,6 +404,10 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
     int k = 0, j = 0;
     int flag = 0;
     FILE *fptr = fopen(inputFile, "r");
+    if(fptr == NULL){
+        printf("\nInput file couldn't be opened");
+        exit(87);
+    }
 
     char c;
     int exitFlag = 0;
@@ -433,9 +460,8 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
                 k++;
                 exitFlag++;
             }
-            else {
-                roomIntArray[j][k] = 9;
-                k++;
+            else{
+                exit(30);
             }
         } 
     }
@@ -450,7 +476,10 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
     }
 
     *sendHead = localHead;   
-    fclose(fptr);
+    if(fclose(fptr) == EOF){   //failed to close
+        printf("\nFile failed to close");
+        exit(34);
+    }
     if(exitFlag != 4) {
         printf("The file did not contain two robots and two endpoints. Exiting program.\n");
         exit(-4);
