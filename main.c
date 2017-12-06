@@ -32,15 +32,20 @@ int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntAr
 int searchList(node *head, int x, int y);
 void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
 node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
+void blackout(int **matrix, int nodeNum, int lengthOfList);
+void printAdjacencyMatrix(int **x, int lengthOfList);
+void resetList(node *head);
+node *freeList(node *x);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char** argv) {           //room.txt output.txt
+int main(int argc, char** argv) {           //   ./a.out room.txt
 
     int y = checkFiles(argv[1], argv[2]);
     if(y == 1) exit(-1); //input file failed
-    if(y == 2) exit(-2); //output file failed
+    //if(y == 2) exit(-2); //output file failed
     char *inputFile = argv[1];
-    char *outputFile = argv[2];
+    //char *outputFile = argv[2];
 
     int *maxLineLength = malloc(sizeof(int));
     int rowHeight = getDimensions(maxLineLength, argv[1]);    
@@ -56,69 +61,198 @@ int main(int argc, char** argv) {           //room.txt output.txt
     int lengthOfList = *ptrLengthOfList;
     free(ptrLengthOfList);
     head = *sendHead;
-    int u, v;
     adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-    /*for(u = 0; u < lengthOfList; u++){
-        for(v = 0; v < lengthOfList; v++){
-            printf("%d ", adjacencyMatrix[u][v]);
-        }
-        printf("\n");
-    }*/
-    node* listOne = NULL;
-    node* listTwo = NULL;
-    //printf("\n******Int Array after function ***\n");
-    printIntArray(roomIntArray, *maxLineLength, rowHeight);
+
+    /*printIntArray(roomIntArray, *maxLineLength, rowHeight);
     printCharArray(roomCharArray, *maxLineLength, rowHeight);
-    //printList(head);
-    node *temp = head;
-    while(temp->symbol != 'S') temp = temp->nextPtr;
-    node *root = temp;
-    temp = head;
-    while(temp->symbol != 'E') temp = temp->nextPtr;
-    
-    dijkstra(head, root, temp, lengthOfList, adjacencyMatrix); 
-    
-    listOne = navigateList(head, root, temp, lengthOfList, adjacencyMatrix);
-    while(listOne != NULL){
+    printList(head);*/
+
+    /*while(listOne != NULL){
         printf("%d %d\n", listOne->row, listOne->column);
         listOne = listOne->nextPtr;
-    }
-    /* 
-    int count;
-    for(count = 0; count < lengthOfList; count++){
-        adjacencyMatrix[count][temp->nodeNum-1] = 0;
-        adjacencyMatrix[temp->nodeNum-1][count] = 0;
-    }
+    }*/
+
+    node *tempForS = head;
+    while(tempForS->symbol != 'S') tempForS = tempForS->nextPtr;
+    int sNodeNum = tempForS->nodeNum;
+
+    node *tempForE = head;
+    while(tempForE->symbol != 'E') tempForE = tempForE->nextPtr;
+    int eNodeNum = tempForE->nodeNum;
+
+    node *tempForF = head;
+    while(tempForF->symbol != 'F') tempForF = tempForF->nextPtr;
+    int fNodeNum = tempForF->nodeNum;
+
+    node *tempForL = head;
+    while(tempForL->symbol != 'L') tempForL = tempForL->nextPtr;
+    int lNodeNum = tempForL->nodeNum;
     
-    printf("\n\n");
-   
-    temp = head;
-    while(temp->symbol != 'F') temp = temp->nextPtr;
-    root = temp;
-    temp = head;
-    while(temp->symbol != 'L') temp = temp->nextPtr;
+    node* list1 = NULL;
+    node* list2 = NULL;
+
+
+    /*dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
+    list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
+    resetList(head);
+    blackout(adjacencyMatrix, sNodeNum, lengthOfList);
+
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);
+
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);
+
+    node *temp = list2;
+    while(temp != NULL){
+        printf("%d %d\n", temp->row, temp->column);
+        temp = temp->nextPtr;
+    } */
     
-    listTwo = navigateList(head, root, temp, lengthOfList, adjacencyMatrix);
-    while(listTwo != NULL){
+    dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
+    list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
+    resetList(head);
+
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);
+
+    if(list1 == NULL){  
+        printf("\nThere is not a path from S to E, regardless of where the second robot is. Exiting program...\n");
+        exit(-5);
+    }
+    if(list2 == NULL){
+        printf("\nThere is not a path from F to L, regardless of where the first robot is. Exiting program...\nb");
+        exit(-6);
+    }
+    list1 = freeList(list1);
+    list2 = freeList(list2);
+
+    blackout(adjacencyMatrix, fNodeNum, lengthOfList);
+    dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
+    list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
+    resetList(head);
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+
+    if(list1 == NULL) { // R2 start blocks R1 path, this works properly
+        list1 = freeList(list1);
+        blackout(adjacencyMatrix, lNodeNum, lengthOfList);
+        dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
+        list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
+        resetList(head);
+        adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+        if(list1 == NULL) { // R2 end blocks R1
+            list1 = freeList(list1);
+            // Exit here, R2 always blocks R1
+        }
+        else { // R2 start blocks R1, end does not block R1, so check to see if I can move R2 then R1.
+            list1 = freeList(list1);
+            blackout(adjacencyMatrix, sNodeNum, lengthOfList);
+            dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix); 
+            list1 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+            resetList(head);
+            adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+            if(list1 == NULL) { // R1 start blocks R2
+                list1 = freeList(list1);
+                // exit because both robot starts block eachother
+
+            }
+            else { // R1 start does not block R2
+                list1 = freeList(list1);
+                blackout(adjacencyMatrix, eNodeNum, lengthOfList);
+                dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+                list1 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+                resetList(head);
+                adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+                if(list1 == NULL) { // 
+                }   
+                else {
+                }
+
+            }
+        }   
+    }
+    else { // R2 start does not block R1 path, this works properly
+        list1 = freeList(list1);
+        blackout(adjacencyMatrix, lNodeNum, lengthOfList);
+        dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
+        list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
+        resetList(head);
+        adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+        if(list1 == NULL) {  // R2 end blocks R1
+            list1 = freeList(list1);
+        }
+        else { // R2 end does not block R1
+            // DONE, move R2 then R1
+            list1 = freeList(list1);
+        
+        }
+
+    }
+    /*adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    list2 = NULL;
+    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);*/
+    /*node *temp = list2;
+    while(temp != NULL){
+        printf("%d %d\n", temp->row, temp->column);
+        temp = temp->nextPtr;
+    }*/
+
+    
+    //freeList(list1);
+    //reeList(list2);
+    /*while(listOne != NULL){
+        printf("%d %d\n", listOne->row, listOne->column);
+        listOne = listOne->nextPtr;
+    }*/
+
+    
+    //adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+
+    /*while(listTwo != NULL){
         printf("%d %d\n", listTwo->row, listTwo->column);
         listTwo = listTwo->nextPtr;
     }*/
-   
+    /*
+    printAdjacencyMatrix(adjacencyMatrix, lengthOfList);
+    blackout(adjacencyMatrix, fNodeNum, lengthOfList);
+    resetList(head);
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);*/
+    // run dij again
+       
     //printList(head);
-  /*  int w = 0;
-    int p = 0;
-    for(p = 0; p < lengthOfList; p++){
-        for(w = 0; w < lengthOfList; w++){
-            printf("%d ", adjacencyMatrix[p][w]);
-        }
-        printf("\n");
-    }
-
-*/
-    
-    
+ 
     return (0);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+node *freeList(node *x){
+    node *temp = x;
+    node *prev;
+    while(temp != NULL){
+        prev = temp;
+        temp = temp->nextPtr;
+        free(prev);
+    }
+}
+        
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void resetList(node *head){
+    node *temp = head;
+    while(temp->nextPtr != NULL){
+        temp->distance = -1;
+        temp->finished = 0;
+        temp = temp->nextPtr;
+    }
+    temp->distance = -1;
+    temp->finished = 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 node* newNode(node* head, int num1, int num2, char symbol){ 
     static int counter = 1;
@@ -249,7 +383,7 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
     FILE *fptr = fopen(inputFile, "r");
 
     char c;
-
+    int exitFlag = 0;
     while(!feof(fptr)){  //parses through all the characters and load the data into the roomArray
         c = fgetc(fptr);
         if(feof(fptr)) break; // Added bc of Brandon
@@ -258,6 +392,7 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
             ++j;
             flag = 0;
         }
+
         else {
             roomCharArray[j][k] = c;
             if(c == '#'){
@@ -278,21 +413,25 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
                 roomIntArray[j][k] = 2;
                 localHead = newNode(localHead, j, k, c);
                 k++;
+                exitFlag++;
             }
             else if(c == 'E'){
                 roomIntArray[j][k] = 3;
                 localHead = newNode(localHead, j, k, c);
                 k++;
+                exitFlag++;
             }
             else if(c == 'F'){
                 roomIntArray[j][k] = 4;
                 localHead = newNode(localHead, j, k, c);
                 k++;
+                exitFlag++;
             }
             else if(c == 'L'){
                 roomIntArray[j][k] = 5;
                 localHead = newNode(localHead, j, k, c);
                 k++;
+                exitFlag++;
             }
             else {
                 roomIntArray[j][k] = 9;
@@ -312,7 +451,11 @@ int  **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **ro
 
     *sendHead = localHead;   
     fclose(fptr);
-    
+    if(exitFlag != 4) {
+        printf("The file did not contain two robots and two endpoints. Exiting program.\n");
+        exit(-4);
+    }
+
     return x;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -389,10 +532,9 @@ int searchList(node *head, int x, int y) {
     return -1;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){    
     adjacencyMatrix[root->row][root->column] = 0;
-    root->distance = 0;
-    
+    root->distance = 0;    
 
     node *temp = head;
     node *listTemp = NULL;
@@ -418,9 +560,7 @@ void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **ad
         }
 
         if(tempPrime == NULL) {
-            break;
-            
-             // no more verts in the list
+            break; // no more verts in the list
         }
         else{
         tempPrime->finished = 1;
@@ -442,19 +582,19 @@ void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **ad
             }
         }
         ctrA++;
-    }
-    
+    }  
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix){
     
     node* listTemp = NULL;
     node* listTemp2 = NULL;
     node* list = NULL;
+    node *newTemp = NULL;
     int count;
     int min = 10000;
     node* holder = NULL;
-    
+    //printf("Root: %c, endPoint: %c.\n", root->symbol, endPoint->symbol);
     listTemp = head;
     listTemp2 = head;
     while(listTemp->symbol != endPoint->symbol){
@@ -480,7 +620,31 @@ node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int
         }
         list = newNode(list, holder->row, holder->column, holder->symbol);
         listTemp = holder;
-    }
+        if(listTemp == newTemp) {
+            return NULL;
+        }
+        newTemp = holder;
+    }   
            
     return(list);
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void blackout(int **matrix, int nodeNum, int lengthOfList){
+    int uu;
+    for(uu = 0; uu < lengthOfList; uu++){
+        matrix[uu][nodeNum - 1] = 0;
+        matrix[nodeNum - 1][uu] = 0;
+    }
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void printAdjacencyMatrix(int **x, int lengthOfList){
+    int uu, vv;
+    printf("*** Adjacency Matrix ***\n");
+    for(uu = 0; uu < lengthOfList; uu++){
+        for(vv = 0; vv < lengthOfList; vv++){
+            printf("%d ", x[uu][vv]);
+        }
+        printf("\n");
+    }
+    printf("*** End adjacency matrix ***\n");
 }
