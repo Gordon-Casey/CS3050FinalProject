@@ -24,7 +24,7 @@ void printIntArray(int **x, int rowLength, int columnHeight); // Helper function
 int getDimensions(int *maxLength, char *inputFile); // Gets depth and width of room.
 char **buildRoomCharArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
 int **buildRoomIntArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
-int checkFiles(char *inputFile);
+int checkFiles(char *inputFile, char *outputFile);
 int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
 int **buildAdjacencyMatrixArray(int lengthOfList);
 void printList(node *head);
@@ -36,20 +36,28 @@ void blackout(int **matrix, int nodeNum, int lengthOfList);
 void printAdjacencyMatrix(int **x, int lengthOfList);
 void resetList(node *head);
 node *freeList(node *x);
-
+void freeEverything(int **x, char **y, int **matrix, int maxLineLength, int rowHeight, int lengthOfList);
+void moveRobots(char **x, node *moveMeFirst, node *moveMeSecond, int rowLength, int columnHeight, char *outputFile);
+node *reverseList(node *me);
+//void writeOutCharArray(char **x, FILE *fptr);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char** argv) {           //   ./a.out room.txt
+int main(int argc, char** argv) {           //   ./a.out room.txt out.txt
 
-    int y = checkFiles(argv[1]);
+    int y = checkFiles(argv[1], argv[2]);
     if(y == 1){
-        printf("\nInput file couldn't be opened");
+        printf("\nInput file couldn't be opened. Exiting program.\n");
         exit(-1); //input file failed
     } 
+    if(y == 2){
+        printf("Output file couldn't be opened. Exiting program.\n");
+        exit(-2);
+    }
     
     
     char *inputFile = argv[1];
-    
+    char *outputFile = argv[2];
+        
     int *maxLineLength = malloc(sizeof(int));
     int rowHeight = getDimensions(maxLineLength, argv[1]);    
     
@@ -64,16 +72,8 @@ int main(int argc, char** argv) {           //   ./a.out room.txt
     int lengthOfList = *ptrLengthOfList;
     free(ptrLengthOfList);
     head = *sendHead;
+    free(sendHead);
     adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-
-    /*printIntArray(roomIntArray, *maxLineLength, rowHeight);
-    printCharArray(roomCharArray, *maxLineLength, rowHeight);
-    printList(head);*/
-
-    /*while(listOne != NULL){
-        printf("%d %d\n", listOne->row, listOne->column);
-        listOne = listOne->nextPtr;
-    }*/
 
     node *tempForS = head;
     while(tempForS->symbol != 'S') tempForS = tempForS->nextPtr;
@@ -94,45 +94,15 @@ int main(int argc, char** argv) {           //   ./a.out room.txt
     node* list1 = NULL;
     node* list2 = NULL;
 
-
-    /*dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
-    list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
-    resetList(head);
-    blackout(adjacencyMatrix, sNodeNum, lengthOfList);
-    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    resetList(head);
-    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    resetList(head);
-    node *temp = list2;
-    while(temp != NULL){
-        printf("%d %d\n", temp->row, temp->column);
-        temp = temp->nextPtr;
-    } */
-    
     dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
     list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
-    resetList(head);
+    resetList(head);   
     
-    node* temp4 = list1;
-    
-    while(temp4 != NULL){
-        printf("%d %d\n", temp4->row, temp4->column);
-        temp4 = temp4->nextPtr;
-    }
     printf("\n");
     dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
     resetList(head);
-    temp4 = list2;
-    
-    while(temp4 != NULL){
-        printf("%d %d\n", temp4->row, temp4->column);
-        temp4 = temp4->nextPtr;
-    }
-    
+        
     if(list1 == NULL){  
         printf("\nThere is not a path from S to E, regardless of where the second robot is. Exiting program...\n");
         exit(-5);
@@ -143,104 +113,169 @@ int main(int argc, char** argv) {           //   ./a.out room.txt
     }
     list1 = freeList(list1);
     list2 = freeList(list2);
+    node *list3 = NULL;
+    node *list4 = NULL;
 
-    blackout(adjacencyMatrix, fNodeNum, lengthOfList);
+    blackout(adjacencyMatrix, fNodeNum, lengthOfList); // See if S->E is blocked by F
     dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
     list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
     resetList(head);
     adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
 
-    if(list1 == NULL) { // R2 start blocks R1 path, this works properly
-        list1 = freeList(list1);
-        blackout(adjacencyMatrix, lNodeNum, lengthOfList);
-        dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
-        list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
-        resetList(head);
-        adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-        if(list1 == NULL) { // R2 end blocks R1
-            list1 = freeList(list1);
-            // Exit here, R2 always blocks R1
-        }
-        else { // R2 start blocks R1, end does not block R1, so check to see if I can move R2 then R1.
-            list1 = freeList(list1);
-            blackout(adjacencyMatrix, sNodeNum, lengthOfList);
-            dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix); 
-            list1 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-            resetList(head);
-            adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-            if(list1 == NULL) { // R1 start blocks R2
-                list1 = freeList(list1);
-                // exit because both robot starts block eachother
-
-            }
-            else { // R1 start does not block R2
-                list1 = freeList(list1);
-                blackout(adjacencyMatrix, eNodeNum, lengthOfList);
-                dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-                list1 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-                resetList(head);
-                adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-                if(list1 == NULL) { // 
-                }   
-                else {
-                }
-
-            }
-        }   
-    }
-    else { // R2 start does not block R1 path, this works properly
-        list1 = freeList(list1);
-        blackout(adjacencyMatrix, lNodeNum, lengthOfList);
-        dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); 
-        list1 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
-        resetList(head);
-        adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-        if(list1 == NULL) {  // R2 end blocks R1
-            list1 = freeList(list1);
-        }
-        else { // R2 end does not block R1
-            // DONE, move R2 then R1
-            list1 = freeList(list1);
-        
-        }
-
-    }
-    /*adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    list2 = NULL;
-    list2 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
-    resetList(head);*/
-    /*node *temp = list2;
-    while(temp != NULL){
-        printf("%d %d\n", temp->row, temp->column);
-        temp = temp->nextPtr;
-    }*/
-
-    
-    //freeList(list1);
-    //reeList(list2);
-    /*while(listOne != NULL){
-        printf("%d %d\n", listOne->row, listOne->column);
-        listOne = listOne->nextPtr;
-    }*/
-
-    
-    //adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
-
-    /*while(listTwo != NULL){
-        printf("%d %d\n", listTwo->row, listTwo->column);
-        listTwo = listTwo->nextPtr;
-    }*/
-    /*
-    printAdjacencyMatrix(adjacencyMatrix, lengthOfList);
-    blackout(adjacencyMatrix, fNodeNum, lengthOfList);
+    blackout(adjacencyMatrix, lNodeNum, lengthOfList);
+    dijkstra(head, tempForS, tempForE, lengthOfList, adjacencyMatrix); // See if S->E is blocked by L
+    list2 = navigateList(head, tempForS, tempForE, lengthOfList, adjacencyMatrix);
     resetList(head);
-    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);*/
-    // run dij again
-       
-    //printList(head);
- 
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+
+    blackout(adjacencyMatrix, sNodeNum, lengthOfList); // See if F->L is blocked by S
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix); 
+    list3 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+
+    blackout(adjacencyMatrix, eNodeNum, lengthOfList); // See if F->L is blocked by E
+    dijkstra(head, tempForF, tempForL, lengthOfList, adjacencyMatrix); 
+    list4 = navigateList(head, tempForF, tempForL, lengthOfList, adjacencyMatrix);
+    resetList(head);
+    adjacencyMatrix = populateAdjacencyMatrix(adjacencyMatrix, head, roomIntArray, roomCharArray, lengthOfList, *maxLineLength, rowHeight);
+
+    if(list1 != NULL && list2 != NULL && list3 != NULL && list4 != NULL){
+        moveRobots(roomCharArray, list1, list3, *maxLineLength, rowHeight, outputFile);
+        printf("Nobody blocks anybody. Move R1 then R2.\n");
+        exit(0);
+
+    }
+    else {
+        if(list1 == NULL && list3 == NULL){
+            printf("Both robots always block eachother. Exiting program...\n");
+            exit(2);
+        }
+
+        if(list1 == NULL && list2 == NULL){
+            printf("Robot 2 always blocks Robot 1. Exiting program...\n");
+            exit(2);
+        }
+    
+        if(list3 == NULL && list4 == NULL){
+            printf("Robot 1 always blocks robot 2. Exiting program...\n");
+            exit(2);
+        }
+
+        if(list2 == NULL && list4 == NULL){
+            printf("Both robots always block eachother. Exiting program...\n");
+            exit(2);
+        }
+
+        if(list1 == NULL && list2 != NULL && list3 != NULL && list4 != NULL){
+            printf("R2 start blocks R1. Move R2 first.\n");
+            moveRobots(roomCharArray, list3, list2, *maxLineLength, rowHeight, outputFile);
+        //Move R2 first
+        }
+
+        if(list1 != NULL && list2 == NULL && list3 != NULL && list4 != NULL){
+            printf("R2 end blocks R1. Move R1 first.\n");
+            moveRobots(roomCharArray, list1, list3, *maxLineLength, rowHeight, outputFile);
+        //Move R1 first
+        }
+    
+        if(list1 != NULL && list2 != NULL && list3 == NULL && list4 != NULL){
+            printf("R1 start blocks R2. Move R1 first.\n");
+            moveRobots(roomCharArray, list1, list4, *maxLineLength, rowHeight, outputFile);
+        //Move R1 first
+        }
+    
+        if(list1 != NULL && list2 != NULL && list3 != NULL && list4 == NULL){
+            printf("R1 end blocks R2. Move R2 first.\n");
+            moveRobots(roomCharArray, list3, list1, *maxLineLength, rowHeight, outputFile);
+        //Move R2 first
+        }
+    }
+    freeEverything(roomIntArray, roomCharArray, adjacencyMatrix, *maxLineLength, rowHeight, lengthOfList);
+    freeList(head);
+    freeList(list1);
+    freeList(list2);
+    freeList(list3);
+    freeList(list4);
+    free(maxLineLength);
     return (0);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+node *reverseList(node *me){
+    node *temp = me;
+    node *next = NULL;
+    node *prev = NULL;
+    while(temp != NULL){
+        next = temp->nextPtr;
+        temp->nextPtr = prev;
+        prev = temp;
+        temp = next;
+    }
+    return prev;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void moveRobots(char **x, node *moveMeFirst, node *moveMeSecond, int rowLength, int columnHeight, char *outputFile){
+    node *temp = moveMeFirst;
+    temp = reverseList(temp);
+    char firstChar = temp->symbol;
+    int u, v;
+    FILE *fptr = fopen(outputFile, "w");
+    for(u = 0; u < columnHeight; u++){
+        for(v = 0; v < rowLength; v++){
+            fprintf(fptr, "%c ", x[u][v]);
+        }
+        fprintf(fptr, "\n");
+    }
+    fprintf(fptr, "\n");
+            
+    while(temp->nextPtr != NULL){
+        x[temp->row][temp->column] = ' ';
+        temp = temp->nextPtr;
+        x[temp->row][temp->column] = firstChar;
+        for(u = 0; u < columnHeight; u++){
+            for(v = 0; v < rowLength; v++){
+                fprintf(fptr, "%c ", x[u][v]);
+            }
+            fprintf(fptr, "\n");
+        }
+        fprintf(fptr, "\n");
+    }
+    temp = moveMeSecond;
+    temp = reverseList(temp);
+    firstChar = temp->symbol;
+
+    while(temp->nextPtr != NULL){
+        x[temp->row][temp->column] = ' ';
+        temp = temp->nextPtr;
+        x[temp->row][temp->column] = firstChar;
+            for(u = 0; u < columnHeight; u++){
+        for(v = 0; v < rowLength; v++){
+            fprintf(fptr, "%c ", x[u][v]);
+        }
+        fprintf(fptr, "\n");
+    }
+    fprintf(fptr, "\n");
+    }
+fclose(fptr);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void freeEverything(int **x, char **y, int **matrix, int maxLineLength, int rowHeight, int lengthOfList){
+    int k;
+    //for(k = 0; k < rowHeight; k++){
+        //free( x[k] );
+        //free( y[k] );
+    //}
+    //free(x);
+    //free(y);
+
+    for(k = 0; k < lengthOfList; k++){
+        free( *(matrix + k) );
+    }
+    free(matrix);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 node *freeList(node *x){
@@ -252,8 +287,6 @@ node *freeList(node *x){
         free(prev);
     }
 }
-        
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void resetList(node *head){
     node *temp = head;
@@ -382,10 +415,13 @@ int **buildRoomIntArray(int maxLineLength, int rowHeight){
     return x;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int checkFiles(char *inputFile){
+int checkFiles(char *inputFile, char *outputFile){
     
     FILE* aptr = fopen(inputFile, "r");
     if(aptr == NULL) return 1;
+    FILE *bptr = fopen(outputFile, "w");
+    if(bptr == NULL) return 2;
+    fclose(bptr);
     
     rewind(aptr);
     fseek(aptr, 0, SEEK_END);                       //check if file empty go to end see if the position changed
@@ -396,6 +432,7 @@ int checkFiles(char *inputFile){
         printf("\nFile failed to close");
         exit(34);
     }
+
     return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
