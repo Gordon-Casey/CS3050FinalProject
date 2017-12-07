@@ -1,0 +1,61 @@
+1) read the file in and find the length of the longest row and the depth of the deepest column.
+2) rewind the file, and malloc a char **array with the dimensions of the greatest row and depth. Also malloc an int **array with those dimensions. 
+3) Re-read the file, char by char, and enter every character exactly into the char**, and also, whenever the space is a space that a robot can traverse to, we will number that node. We will store that number in the integer array, at the same time, and we will create a linked list with that node, and in each node of the list we will store its row and column coordinates.
+4) Malloc a int **array for the adjecency matrix, with both dimensions being the size of the linked list 
+5) Traverse through the int **array again, and for each numbered node, check to see what its neighbors are. If its neighbor is a node, that means that there is a link, and so we go to the adjacency matrix and put a 1 at that adjacency (at x,y and y,x). This creates our adjacency matrix.
+6) Next we establish temp pointers for S,E,F, and L in the linked list so that we can reference their coordinates and distances later
+
+node* newNode(node* head, int num1, int num2, char symbol);
+    -takes in a node* and creates a linked list if head == NULL or adds it to the end of the list and initializes with different attributes
+
+void printCharArray(char **x, int rowLength, int columnHeight); // Helper function.
+    -this is a utility function that helped us debug the code it displays into stdout whatever double char array we pass into it
+
+void printIntArray(int **x, int rowLength, int columnHeight); // Helper function.
+    -this is a utility function that helped us debug the code it displays into stdout whatever double int array we pass into it
+
+int getDimensions(int *maxLength, char *inputFile); // Gets depth and width of room.
+    -this function finds the greatest depth and width of the given room, edits maxLength as it is passed through the function and returns the greatest row height
+
+char **buildRoomCharArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
+    -This function builds the utility room double character array with the dimensions of the maxLineLenght and rowHeight 
+
+int **buildRoomIntArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
+    -This function builds the utility room double int array with the dimensions of the maxLineLenght and rowHeight 
+
+int checkFiles(char *inputFile);
+    -makes sure the iniputFIle can be opend, closed, and that it is not empty
+
+int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
+    -cycles through the input file character by character and inserts it into the roomCharArray, if it is a space a robot can traverse to we number that node and store that into the integer array and add it onto the linked list
+
+int **buildAdjacencyMatrixArray(int lengthOfList);
+    -mallocs a two dimensional int arrray for the adjacency matrix with both dimensions theh length of the list
+
+void printList(node *head);
+    -utility function that prints out the node key, position, symbol, and distance stored at each node in list
+
+int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray, int lengthOfList, int maxLineLength, int rowHeight);
+    -Cycles through the linked list and checks to see what the neighbors are of every node. If its neighbor is a viable node, that means that there is an adjacency, and so we go to the adjacency matrix and put a 1 at that adjacency (at x,y and y,x). This creates our adjacency matrix.
+
+int searchList(node *head, int x, int y);
+    -This function scans through the linked list and looks for the node with the row and column coordinates that match the x,y passed to the function. It returns the nodeNum that corresponds to the x,y
+
+void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
+    -Finds the shortest path to every navigable node in the room
+
+node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
+    -This function will start at the "endPoint" or where ever the robot is going to go and will backtrack to its starting point by looking at the distances of all nodes that are adjacent to it.
+    -We move to which ever node adjacent that has the smallest distance and repeat the process
+
+void blackout(int **matrix, int nodeNum, int lengthOfList);
+    ???????????????????????????????????????????????????????????????????????????????
+
+void printAdjacencyMatrix(int **x, int lengthOfList);
+    -utility function that will print out the adjacency matrix used for troubleshooting
+
+void resetList(node *head);
+    -reinitializes the distance -1 and finished to 0 for every node in the list passed to the function
+
+node *freeList(node *x);
+    -Frees all the nodes in the list passed to the function
