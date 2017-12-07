@@ -4,67 +4,99 @@
 4) Malloc a int **array for the adjecency matrix, with both dimensions being the size of the linked list 
 5) Traverse through the int **array again, and for each numbered node, check to see what its neighbors are. If its neighbor is a node, that means that there is a link, and so we go to the adjacency matrix and put a 1 at that adjacency (at x,y and y,x). This creates our adjacency matrix.
 6) Next we establish temp pointers for S,E,F, and L in the linked list so that we can reference their coordinates and distances later
+7)
+8) All space previously malloced is freed up
+
 
 node* newNode(node* head, int num1, int num2, char symbol);
     -takes in a node* and creates a linked list if head == NULL or adds it to the end of the list and initializes with different attributes
+    -worst case runs in O(n) since it adds nodes to the end of the list
 
 void printCharArray(char **x, int rowLength, int columnHeight); // Helper function.
     -this is a utility function that helped us debug the code it displays into stdout whatever double char array we pass into it
+    -runs in O(n^2) since it touches every spot of the two dimensional array
 
 void printIntArray(int **x, int rowLength, int columnHeight); // Helper function.
     -this is a utility function that helped us debug the code it displays into stdout whatever double int array we pass into it
+    -runs in O(n^2) since it touches every spot of the two dimensional array
 
 int getDimensions(int *maxLength, char *inputFile); // Gets depth and width of room.
     -this function finds the greatest depth and width of the given room, edits maxLength as it is passed through the function and returns the greatest row height
+    -runs in O(n) since it cycles through the room only once
 
 char **buildRoomCharArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
     -This function builds the utility room double character array with the dimensions of the maxLineLenght and rowHeight 
+    -runs in O(n^2) since it mallocs every spot of the two dimensional character array
 
 int **buildRoomIntArray(int maxLineLength, int rowHeight); // Malloc's array of size of room.
     -This function builds the utility room double int array with the dimensions of the maxLineLenght and rowHeight 
+    -runs in O(n^2) since it mallocs every spot of the two dimensional integer array
 
 int checkFiles(char *inputFile);
     -makes sure the iniputFIle can be opend, closed, and that it is not empty
+    -runs in O(1) since it only makes sure the inputFile opens and closes properly
 
 int **populateArraysAndMakeList(node **sendHead, char **roomCharArray, int **roomIntArray, int maxLineLength, int rowHeight, char *inputFile, int *ptrLengthOfList);
     -cycles through the input file character by character and inserts it into the roomCharArray, if it is a space a robot can traverse to we number that node and store that into the integer array and add it onto the linked list
+    -runs in O(n) since we read in the data from the room only once
 
 int **buildAdjacencyMatrixArray(int lengthOfList);
     -mallocs a two dimensional int arrray for the adjacency matrix with both dimensions theh length of the list
+    -runs in O(n) since it only mallocs in one while loop for the length of the list
 
 void printList(node *head);
     -utility function that prints out the node key, position, symbol, and distance stored at each node in list
+    -runs in O(n) since it cycles through the linked list only once
 
 int **populateAdjacencyMatrix(int **adjacencyMatrix, node *head, int **roomIntArray, char **roomCharArray, int lengthOfList, int maxLineLength, int rowHeight);
     -Cycles through the linked list and checks to see what the neighbors are of every node. If its neighbor is a viable node, that means that there is an adjacency, and so we go to the adjacency matrix and put a 1 at that adjacency (at x,y and y,x). This creates our adjacency matrix.
+    -runs in O(n) since it has to cycle through every node of the linked list
 
 int searchList(node *head, int x, int y);
     -This function scans through the linked list and looks for the node with the row and column coordinates that match the x,y passed to the function. It returns the nodeNum that corresponds to the x,y
+    -runs in O(n) in the worst case because it goes node by node while scanning
 
 void dijkstra(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
     -Finds the shortest path to every navigable node in the room
+    -runs in the worst case O((|E| + |V|)log|V|)
 
 node* navigateList(node *head, node *root, node *endPoint, int lengthOfList, int **adjacencyMatrix);
     -This function will start at the "endPoint" or where ever the robot is going to go and will backtrack to its starting point by looking at the distances of all nodes that are adjacent to it.
     -We move to which ever node adjacent that has the smallest distance and repeat the process
+    -runs in 
 
 void blackout(int **matrix, int nodeNum, int lengthOfList);
     ???????????????????????????????????????????????????????????????????????????????
 
 void printAdjacencyMatrix(int **x, int lengthOfList);
     -utility function that will print out the adjacency matrix used for troubleshooting
+    -runs in O(n^2) since it cycles through the adjMatrix only once
 
 void resetList(node *head);
     -reinitializes the distance -1 and finished to 0 for every node in the list passed to the function
+    -runs in O(n) complexity since it touches each node in the list only once
 
 node *freeList(node *x);
     -Frees all the nodes in the list passed to the function
+    -runs in o(n) complexity since it touches each node only once
 
 void freeEverything(int **x, char **y, int **matrix, int maxLineLength, int rowHeight, int lengthOfList);
     ?????????????????????????????????????????????????????????????????
+    -runs in 0(n^2) complexity since it cycles through every spot once on the two dimensional arrays
 
 void moveRobots(char **x, node *moveMeFirst, node *moveMeSecond, int rowLength, int columnHeight, char *outputFile);
     ????????????????????????????????????????????????????????????????????????
+    -runs in O(n^2) complexity since we have for loops within each other
 
-node *reverseList(node *me);
+node *reverseList(node *me); 
     ?????????????????????????????????????????????????????????????????????????????????
+    -runs in O(n) n being the number of nodes in the linked list
+
+Joshua Wrote
+    -Functions to scan the room, error checking, load it in, create two dimensional arrays, and finding the path
+
+Gordon Wrote
+    -Functions to handle all the different possible cases, free malloced space, output the path, and utility functions
+
+Together We Wrote
+    -Our version of dijkstra and creating the Adjacency Matrix
