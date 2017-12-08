@@ -4,7 +4,7 @@
 4) Malloc a int **array for the adjecency matrix, with both dimensions being the size of the linked list 
 5) Traverse through the int **array again, and for each numbered node, check to see what its neighbors are. If its neighbor is a node, that means that there is a link, and so we go to the adjacency matrix and put a 1 at that adjacency (at x,y and y,x). This creates our adjacency matrix.
 6) Next we establish temp pointers for S,E,F, and L in the linked list so that we can reference their coordinates and distances later
-7)
+7) 
 8) All space previously malloced is freed up
 
 
@@ -92,11 +92,7 @@ node *reverseList(node *me);
     ?????????????????????????????????????????????????????????????????????????????????
     -runs in O(n) n being the number of nodes in the linked list
 
-Joshua Wrote
-    -Functions to scan the room, error checking, load it in, create two dimensional arrays, and finding the path
 
-Gordon Wrote
-    -Functions to handle all the different possible cases, free malloced space, output the path, and utility functions
+We worked very well together as a team. We met together approximately 6 times. During out meetings we would brainstorm on what we would work on next, and we would delegate what eachother would work on while we were apart, and when we met next, we would integrate out code and plan out the next bit of the algorith that we would work on. We planned all of the algorithm together during these meetings, and we evenly distributed the programming workload. We were very happy with working with eachother as far as a group project goes. 
 
-Together We Wrote
-    -Our version of dijkstra and creating the Adjacency Matrix
+
